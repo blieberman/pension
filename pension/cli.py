@@ -36,18 +36,25 @@ def get_instance_statuses(ec2_client, config):
                 MaxResults=1000
             )
 
-            # We don't care about completed events. Thanks amazon for this
-            # wonderful API.
-            active_events = [
-                status
-                for status in res['InstanceStatuses']
-                for event in status.get('Events', [])
-                if not event['Description'].startswith('[Completed]')
-            ]
+            events = []
 
-            # Don't alert if we don't have any active events
-            if len(active_events):
-                _statuses.extend(active_events)
+            if config.get('output') == 'completed':
+                events = [
+                    status
+                    for status in res['InstanceStatuses']
+                    for event in status.get('Events', [])
+                ]
+            elif config.get('output') == 'normal':
+                events = [
+                    status
+                    for status in res['InstanceStatuses']
+                    for event in status.get('Events', [])
+                    if not event['Description'].startswith('[Completed]')
+                ]
+
+            # Don't alert if we don't have any events found
+            if len(events):
+                _statuses.extend(events)
                 next_token = res.get('NextToken')
 
             if not next_token:
@@ -85,10 +92,11 @@ def get_config(config_locations):
 
 
 @click.command()
+@click.option('--completed', is_flag=True, help='Include completed events in results')
 @click.option('--dry-run', is_flag=True, help='Disables sending alerts')
 @click.option('--config', required=False, help='Configuration file location')
 @click.option('--quiet', '-q', is_flag=True, help='Disables default JSON output')
-def main(dry_run, config, quiet):
+def main(completed, dry_run, config, quiet):
     config_names = [config] if config else ['pension.toml', '~/.pension.toml']
 
     try:
@@ -100,6 +108,11 @@ def main(dry_run, config, quiet):
     if config is None:
         click.echo('No usable config file, trying environment vars', err=True)
         config = {'notify': {'json': {}}}
+
+    if completed:
+        config['output'] = 'completed'
+    else:
+        config['output'] = 'normal'
 
     data = {'instances': [], 'profiles': {}}
     instance_map = {}

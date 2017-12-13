@@ -90,7 +90,7 @@ region={region}#Instances:search={instance}|{instance}>: `{inst_name}` {events}'
             desc = event.get('Description')
             start = event.get('NotBefore')
 
-            events.append('%s%s' % (desc, start.strftime('%m/%d %H:%M')))
+            events.append('%s ; DOA: %s' % (desc, start.strftime('%m/%d %H:%M')))
 
         if events:
             event_descriptions[inst_id] = ';'.join(events)
@@ -107,7 +107,7 @@ region={region}#Instances:search={instance}|{instance}>: `{inst_name}` {events}'
     ]
 
     post_data = {
-        'text': '%d instance(s) have an issue: \n • %s' % (
+        'text': '%d instance(s) have events: \n • %s' % (
             len(data['instances']), '\n • '.join(instance_links))
     }
 
@@ -125,7 +125,7 @@ region={region}#Instances:search={instance}|{instance}>: `{inst_name}` {events}'
 def notify_email(data, inst_map, config):
 
     msg_content = '''
-    {num_instances} EC2 instances currently have issues!
+    {num_instances} AWS instances currently have events!
     ========
 
     By AWS profile:

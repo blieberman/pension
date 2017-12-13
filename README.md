@@ -16,7 +16,7 @@ internal notification tooling.
 
 `pip install pension`
 
-`pension [--dry-run] [--quiet] [--config path/to/pension.toml]`
+`pension [--completed] [--dry-run] [--quiet] [--config path/to/pension.toml]`
 
 ### configuration
 
